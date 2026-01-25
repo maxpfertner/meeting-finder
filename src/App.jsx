@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Polyline, Popup, useMap } from 'react-leaflet';
-import { MapPin, Train, Clock, X, Calculator, Info } from 'lucide-react';
+import { MapPin, Train, Clock, X, Calculator, Info, RotateCcw } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 
 // Deutsche Städte über 100.000 Einwohner (sortiert nach Einwohnerzahl)
@@ -335,8 +335,15 @@ function findOptimalMeetingPoint(selectedCities) {
 }
 
 // Komponente zum Zeichnen der Verbindungslinien
-function MapConnections({ selectedCities, optimalPoint }) {
+function MapConnections({ selectedCities, optimalPoint, mapRef }) {
   const map = useMap();
+  
+  // Speichere Map-Referenz im Parent
+  React.useEffect(() => {
+    if (mapRef) {
+      mapRef.current = map;
+    }
+  }, [map, mapRef]);
   
   useEffect(() => {
     if (optimalPoint && selectedCities.length > 0) {
@@ -372,6 +379,7 @@ function MapConnections({ selectedCities, optimalPoint }) {
 export default function MeetingPointFinder() {
   const [selectedCities, setSelectedCities] = useState([]);
   const [optimalPoint, setOptimalPoint] = useState(null);
+  const mapRef = React.useRef(null);
 
   useEffect(() => {
     if (selectedCities.length >= 2) {
@@ -397,6 +405,15 @@ export default function MeetingPointFinder() {
     setSelectedCities(prev => prev.filter(c => c.name !== cityName));
   };
 
+  const resetMap = () => {
+    setSelectedCities([]);
+    setOptimalPoint(null);
+    // Zoom zurück auf ganz Deutschland
+    if (mapRef.current) {
+      mapRef.current.setView([51.1657, 10.4515], 6);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
       <div className="max-w-7xl mx-auto">
@@ -409,6 +426,18 @@ export default function MeetingPointFinder() {
           <p className="text-gray-600 mb-8">
             Wähle die Startstädte deiner Teilnehmer aus und finde den optimalen Treffpunkt mit minimaler Reisezeit für alle.
           </p>
+
+          {selectedCities.length > 0 && (
+            <div className="mb-6 flex justify-end">
+              <button
+                onClick={resetMap}
+                className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors font-medium"
+              >
+                <RotateCcw className="w-4 h-4" />
+                Auswahl zurücksetzen
+              </button>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Karte */}
@@ -427,7 +456,7 @@ export default function MeetingPointFinder() {
                       maxZoom={19}
                     />
                     
-                    <MapConnections selectedCities={selectedCities} optimalPoint={optimalPoint} />
+                    <MapConnections selectedCities={selectedCities} optimalPoint={optimalPoint} mapRef={mapRef} />
                     
                     {/* Alle Städte */}
                     {CITIES.map((city, idx) => {
