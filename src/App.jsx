@@ -415,26 +415,33 @@ export default function MeetingPointFinder() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          <div className="flex items-center gap-3 mb-6">
-            <Train className="w-8 h-8 text-indigo-600" />
-            <h1 className="text-3xl font-bold text-gray-800">Halfways - Meeting Point Finder</h1>
+        <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl p-8 border border-white/20">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-3 rounded-2xl shadow-lg">
+              <Train className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                Halfways
+              </h1>
+              <p className="text-sm text-gray-500 font-medium">Meeting Point Finder</p>
+            </div>
           </div>
           
-          <p className="text-gray-600 mb-8">
-            Wähle die Startstädte deiner Teilnehmer aus und finde den optimalen Treffpunkt mit minimaler Reisezeit für alle.
+          <p className="text-gray-600 mb-8 text-lg">
+            Finde den optimalen Treffpunkt mit minimaler Reisezeit für alle Teilnehmer.
           </p>
 
           {selectedCities.length > 0 && (
             <div className="mb-6 flex justify-end">
               <button
                 onClick={resetMap}
-                className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors font-medium"
+                className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-xl hover:from-red-600 hover:to-pink-600 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 font-medium"
               >
                 <RotateCcw className="w-4 h-4" />
-                Auswahl zurücksetzen
+                Zurücksetzen
               </button>
             </div>
           )}
@@ -442,8 +449,8 @@ export default function MeetingPointFinder() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Karte */}
             <div className="lg:col-span-2">
-              <div className="bg-gradient-to-br from-blue-100 to-indigo-50 rounded-xl p-4 border-2 border-indigo-200">
-                <div className="h-[600px] rounded-lg overflow-hidden">
+              <div className="bg-gradient-to-br from-indigo-100/50 to-purple-100/50 rounded-2xl p-4 border border-indigo-200/50 shadow-xl backdrop-blur-sm">
+                <div className="h-[600px] rounded-xl overflow-hidden shadow-2xl ring-1 ring-black/5">
                   <MapContainer
                     center={[51.1657, 10.4515]}
                     zoom={6}
@@ -544,9 +551,9 @@ export default function MeetingPointFinder() {
 
             {/* Sidebar */}
             <div>
-              <div className="bg-indigo-50 rounded-xl p-6 border-2 border-indigo-200 mb-6">
+              <div className="bg-gradient-to-br from-indigo-50/80 to-blue-50/80 backdrop-blur-sm rounded-2xl p-6 border border-indigo-200/50 shadow-xl mb-6">
                 <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                  <MapPin className="w-5 h-5" />
+                  <MapPin className="w-5 h-5 text-indigo-600" />
                   Ausgewählte Startstädte
                 </h2>
                 
@@ -557,8 +564,8 @@ export default function MeetingPointFinder() {
                     {selectedCities.map(city => {
                       const isOptimal = optimalPoint && optimalPoint.city.name === city.name;
                       return (
-                        <div key={city.name} className={`rounded-lg p-3 flex items-center justify-between ${
-                          isOptimal ? 'bg-emerald-100 border-2 border-emerald-300' : 'bg-white'
+                        <div key={city.name} className={`rounded-xl p-3 flex items-center justify-between transition-all transform hover:scale-102 ${
+                          isOptimal ? 'bg-gradient-to-r from-emerald-100 to-green-100 border-2 border-emerald-300 shadow-md' : 'bg-white shadow-sm hover:shadow-md'
                         }`}>
                           <span className={`font-medium ${isOptimal ? 'text-emerald-700' : 'text-gray-800'}`}>
                             {city.name}
@@ -567,7 +574,7 @@ export default function MeetingPointFinder() {
                           {!isOptimal && (
                             <button
                               onClick={() => removeCity(city.name)}
-                              className="text-red-500 hover:bg-red-50 rounded p-1"
+                              className="text-red-500 hover:bg-red-50 rounded-lg p-1.5 transition-colors"
                             >
                               <X className="w-4 h-4" />
                             </button>
@@ -581,23 +588,23 @@ export default function MeetingPointFinder() {
 
               {/* Ergebnis */}
               {optimalPoint && (
-                <div className="bg-emerald-50 rounded-xl p-6 border-2 border-emerald-200">
+                <div className="bg-gradient-to-br from-emerald-50/80 to-green-50/80 backdrop-blur-sm rounded-2xl p-6 border border-emerald-200/50 shadow-xl">
                   <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                    <Calculator className="w-5 h-5" />
+                    <Calculator className="w-5 h-5 text-emerald-600" />
                     Optimaler Treffpunkt
                   </h2>
                   
-                  <div className="bg-white rounded-lg p-4 mb-4">
-                    <div className="text-2xl font-bold text-emerald-600 mb-2">
+                  <div className="bg-white/90 rounded-xl p-4 mb-4 shadow-lg border border-emerald-100">
+                    <div className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent mb-2">
                       {optimalPoint.city.name}
                     </div>
-                    <div className="text-sm text-gray-600">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Clock className="w-4 h-4" />
+                    <div className="text-sm text-gray-600 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-emerald-600" />
                         Max. Reisezeit: <span className="font-semibold">{optimalPoint.maxTime} Min</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4" />
+                        <Clock className="w-4 h-4 text-emerald-600" />
                         Ø Reisezeit: <span className="font-semibold">{Math.round(optimalPoint.avgTime)} Min</span>
                       </div>
                     </div>
@@ -606,10 +613,10 @@ export default function MeetingPointFinder() {
                   <div className="space-y-2">
                     <h3 className="font-semibold text-gray-700 text-sm mb-2">Reisezeiten:</h3>
                     {optimalPoint.travelTimes.map((travel, idx) => (
-                      <div key={idx} className="bg-white rounded p-3 text-sm">
+                      <div key={idx} className="bg-white/90 rounded-lg p-3 text-sm shadow-sm hover:shadow-md transition-shadow">
                         <div className="flex justify-between items-center">
                           <span className="text-gray-700">{travel.from}</span>
-                          <span className="font-semibold text-indigo-600">{travel.time} Min</span>
+                          <span className="font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">{travel.time} Min</span>
                         </div>
                       </div>
                     ))}
@@ -629,10 +636,10 @@ export default function MeetingPointFinder() {
                   <button
                     key={city.name}
                     onClick={() => toggleCity(city)}
-                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                    className={`px-4 py-2 rounded-xl font-medium transition-all transform hover:scale-105 ${
                       isSelected
-                        ? 'bg-indigo-600 text-white shadow-md'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-xl'
+                        : 'bg-white text-gray-700 hover:bg-gray-50 shadow-sm hover:shadow-md border border-gray-200'
                     }`}
                   >
                     {city.name}
@@ -642,7 +649,7 @@ export default function MeetingPointFinder() {
             </div>
           </div>
 
-          <div className="mt-6 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
+          <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl shadow-sm">
             <div className="flex gap-3">
               <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
               <div className="text-sm text-gray-700">
