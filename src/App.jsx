@@ -422,9 +422,9 @@ export default function MeetingPointFinder() {
                     zoomControl={true}
                   >
                     <TileLayer
-                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.stadiamaps.com/">Stadia Maps</a>'
-                      url="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png"
-                      maxZoom={20}
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                      url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                      maxZoom={19}
                     />
                     
                     <MapConnections selectedCities={selectedCities} optimalPoint={optimalPoint} />
