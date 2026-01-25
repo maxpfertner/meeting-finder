@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { MapContainer, TileLayer, CircleMarker, Polyline, Popup, useMap } from 'react-leaflet';
 import { MapPin, Train, Clock, X, Calculator, Info } from 'lucide-react';
+import 'leaflet/dist/leaflet.css';
 
-// Große deutsche Städte mit Koordinaten
+// Deutsche Städte über 100.000 Einwohner (sortiert nach Einwohnerzahl)
 const CITIES = [
   { name: 'Berlin', lat: 52.520008, lon: 13.404954, population: 3645000 },
   { name: 'Hamburg', lat: 53.551086, lon: 9.993682, population: 1841000 },
@@ -10,9 +12,9 @@ const CITIES = [
   { name: 'Frankfurt', lat: 50.110924, lon: 8.682127, population: 753000 },
   { name: 'Stuttgart', lat: 48.775846, lon: 9.182932, population: 634000 },
   { name: 'Düsseldorf', lat: 51.227741, lon: 6.773456, population: 621000 },
+  { name: 'Leipzig', lat: 51.339695, lon: 12.373075, population: 597000 },
   { name: 'Dortmund', lat: 51.513587, lon: 7.465298, population: 587000 },
   { name: 'Essen', lat: 51.455643, lon: 7.011555, population: 583000 },
-  { name: 'Leipzig', lat: 51.339695, lon: 12.373075, population: 597000 },
   { name: 'Bremen', lat: 53.079296, lon: 8.801694, population: 569000 },
   { name: 'Dresden', lat: 51.050409, lon: 13.737262, population: 556000 },
   { name: 'Hannover', lat: 52.375892, lon: 9.732010, population: 535000 },
@@ -22,21 +24,69 @@ const CITIES = [
   { name: 'Wuppertal', lat: 51.256290, lon: 7.150764, population: 355000 },
   { name: 'Bielefeld', lat: 52.020736, lon: 8.535002, population: 334000 },
   { name: 'Bonn', lat: 50.733992, lon: 7.099814, population: 329000 },
+  { name: 'Münster', lat: 51.960665, lon: 7.626135, population: 315000 },
   { name: 'Mannheim', lat: 49.487459, lon: 8.466039, population: 310000 },
   { name: 'Karlsruhe', lat: 49.006890, lon: 8.403653, population: 308000 },
-  { name: 'Wiesbaden', lat: 50.082730, lon: 8.240594, population: 278000 },
-  { name: 'Münster', lat: 51.960665, lon: 7.626135, population: 315000 },
   { name: 'Augsburg', lat: 48.371736, lon: 10.898341, population: 296000 },
-  { name: 'Chemnitz', lat: 50.827845, lon: 12.921389, population: 246000 },
+  { name: 'Wiesbaden', lat: 50.082730, lon: 8.240594, population: 278000 },
+  { name: 'Mönchengladbach', lat: 51.195136, lon: 6.432726, population: 261000 },
+  { name: 'Gelsenkirchen', lat: 51.517744, lon: 7.085717, population: 260000 },
   { name: 'Braunschweig', lat: 52.268874, lon: 10.526770, population: 249000 },
-  { name: 'Kiel', lat: 54.323293, lon: 10.122765, population: 247000 },
   { name: 'Aachen', lat: 50.775346, lon: 6.083887, population: 249000 },
+  { name: 'Kiel', lat: 54.323293, lon: 10.122765, population: 247000 },
+  { name: 'Chemnitz', lat: 50.827845, lon: 12.921389, population: 246000 },
+  { name: 'Halle', lat: 51.482580, lon: 11.969761, population: 239000 },
   { name: 'Magdeburg', lat: 52.120533, lon: 11.627624, population: 237000 },
   { name: 'Freiburg', lat: 47.997791, lon: 7.842609, population: 230000 },
+  { name: 'Krefeld', lat: 51.338079, lon: 6.585279, population: 227000 },
+  { name: 'Mainz', lat: 49.992862, lon: 8.247253, population: 218000 },
+  { name: 'Lübeck', lat: 53.865467, lon: 10.686559, population: 217000 },
+  { name: 'Erfurt', lat: 50.984768, lon: 11.029807, population: 214000 },
+  { name: 'Oberhausen', lat: 51.469431, lon: 6.851460, population: 210000 },
+  { name: 'Rostock', lat: 54.092685, lon: 12.099147, population: 209000 },
+  { name: 'Kassel', lat: 51.312801, lon: 9.479742, population: 202000 },
+  { name: 'Hagen', lat: 51.359241, lon: 7.479416, population: 188000 },
+  { name: 'Potsdam', lat: 52.390569, lon: 13.064473, population: 183000 },
+  { name: 'Saarbrücken', lat: 49.240155, lon: 6.996727, population: 180000 },
+  { name: 'Hamm', lat: 51.680845, lon: 7.820346, population: 179000 },
+  { name: 'Ludwigshafen', lat: 49.477430, lon: 8.445141, population: 172000 },
+  { name: 'Mülheim', lat: 51.427620, lon: 6.883045, population: 171000 },
+  { name: 'Oldenburg', lat: 53.143887, lon: 8.213886, population: 169000 },
+  { name: 'Osnabrück', lat: 52.278748, lon: 8.049654, population: 165000 },
+  { name: 'Leverkusen', lat: 51.030247, lon: 6.988455, population: 163000 },
+  { name: 'Heidelberg', lat: 49.398750, lon: 8.672434, population: 159000 },
+  { name: 'Darmstadt', lat: 49.872775, lon: 8.651177, population: 159000 },
+  { name: 'Solingen', lat: 51.163670, lon: 7.067190, population: 159000 },
+  { name: 'Herne', lat: 51.538327, lon: 7.225608, population: 156000 },
+  { name: 'Regensburg', lat: 49.013432, lon: 12.101624, population: 153000 },
+  { name: 'Neuss', lat: 51.204109, lon: 6.688388, population: 153000 },
+  { name: 'Paderborn', lat: 51.715033, lon: 8.752506, population: 152000 },
+  { name: 'Ingolstadt', lat: 48.763616, lon: 11.424946, population: 138000 },
+  { name: 'Offenbach', lat: 50.103050, lon: 8.760850, population: 131000 },
+  { name: 'Fürth', lat: 49.477879, lon: 10.988633, population: 128000 },
+  { name: 'Würzburg', lat: 49.794033, lon: 9.929350, population: 127000 },
+  { name: 'Ulm', lat: 48.401478, lon: 9.987608, population: 126000 },
+  { name: 'Heilbronn', lat: 49.142291, lon: 9.218916, population: 126000 },
+  { name: 'Pforzheim', lat: 48.891880, lon: 8.699278, population: 126000 },
+  { name: 'Wolfsburg', lat: 52.423076, lon: 10.787085, population: 124000 },
+  { name: 'Göttingen', lat: 51.533889, lon: 9.935556, population: 117000 },
+  { name: 'Bottrop', lat: 51.524204, lon: 6.928844, population: 117000 },
+  { name: 'Reutlingen', lat: 48.491388, lon: 9.204584, population: 116000 },
+  { name: 'Koblenz', lat: 50.356667, lon: 7.593889, population: 114000 },
+  { name: 'Bremerhaven', lat: 53.539722, lon: 8.580556, population: 114000 },
+  { name: 'Erlangen', lat: 49.598194, lon: 11.004194, population: 113000 },
+  { name: 'Recklinghausen', lat: 51.613830, lon: 7.197830, population: 111000 },
+  { name: 'Trier', lat: 49.756944, lon: 6.641389, population: 111000 },
+  { name: 'Remscheid', lat: 51.179722, lon: 7.189167, population: 111000 },
+  { name: 'Jena', lat: 50.927222, lon: 11.586111, population: 108000 },
+  { name: 'Salzgitter', lat: 52.085556, lon: 10.333889, population: 104000 },
+  { name: 'Moers', lat: 51.451111, lon: 6.626389, population: 103000 },
+  { name: 'Siegen', lat: 50.874722, lon: 8.024167, population: 102000 },
 ];
 
-// Echte DB Reisezeiten (in Minuten, gerundet auf 15 Min) - Hauptverbindungen
+// Echte DB Reisezeiten (in Minuten, gerundet auf 15 Min)
 const TRAVEL_TIMES = {
+  // Hauptverbindungen Berlin
   'Berlin-Hamburg': 145,
   'Berlin-München': 240,
   'Berlin-Köln': 270,
@@ -46,32 +96,193 @@ const TRAVEL_TIMES = {
   'Berlin-Hannover': 105,
   'Berlin-Stuttgart': 330,
   'Berlin-Düsseldorf': 270,
+  'Berlin-Bremen': 225,
+  'Berlin-Nürnberg': 270,
+  'Berlin-Erfurt': 135,
+  'Berlin-Halle': 105,
+  'Berlin-Magdeburg': 90,
+  'Berlin-Potsdam': 30,
+  'Berlin-Rostock': 165,
+  
+  // Hauptverbindungen Hamburg
   'Hamburg-München': 360,
   'Hamburg-Köln': 240,
   'Hamburg-Frankfurt': 210,
   'Hamburg-Bremen': 60,
   'Hamburg-Hannover': 90,
   'Hamburg-Berlin': 145,
+  'Hamburg-Stuttgart': 330,
+  'Hamburg-Düsseldorf': 225,
+  'Hamburg-Kiel': 75,
+  'Hamburg-Lübeck': 45,
+  'Hamburg-Oldenburg': 105,
+  'Hamburg-Bremerhaven': 75,
+  
+  // Hauptverbindungen München
   'München-Köln': 270,
   'München-Frankfurt': 195,
   'München-Stuttgart': 120,
   'München-Nürnberg': 65,
+  'München-Berlin': 240,
+  'München-Hamburg': 360,
+  'München-Augsburg': 30,
+  'München-Regensburg': 90,
+  'München-Ingolstadt': 45,
+  'München-Ulm': 90,
+  'München-Würzburg': 180,
+  'München-Freiburg': 270,
+  
+  // Hauptverbindungen Köln
   'Köln-Frankfurt': 70,
   'Köln-Düsseldorf': 30,
   'Köln-Hannover': 180,
+  'Köln-Berlin': 270,
+  'Köln-München': 270,
+  'Köln-Hamburg': 240,
+  'Köln-Stuttgart': 165,
+  'Köln-Dortmund': 60,
+  'Köln-Essen': 45,
+  'Köln-Bonn': 20,
+  'Köln-Aachen': 45,
+  'Köln-Mainz': 90,
+  'Köln-Koblenz': 60,
+  
+  // Hauptverbindungen Frankfurt
   'Frankfurt-Stuttgart': 80,
   'Frankfurt-Mannheim': 30,
+  'Frankfurt-Köln': 70,
+  'Frankfurt-München': 195,
+  'Frankfurt-Berlin': 240,
+  'Frankfurt-Hamburg': 210,
+  'Frankfurt-Hannover': 165,
+  'Frankfurt-Würzburg': 75,
+  'Frankfurt-Nürnberg': 135,
+  'Frankfurt-Kassel': 90,
+  'Frankfurt-Mainz': 30,
+  'Frankfurt-Darmstadt': 15,
+  'Frankfurt-Wiesbaden': 30,
+  'Frankfurt-Heidelberg': 45,
+  'Frankfurt-Karlsruhe': 60,
+  
+  // Hauptverbindungen Stuttgart
   'Stuttgart-Nürnberg': 120,
   'Stuttgart-Karlsruhe': 45,
+  'Stuttgart-München': 120,
+  'Stuttgart-Frankfurt': 80,
+  'Stuttgart-Köln': 165,
+  'Stuttgart-Mannheim': 30,
+  'Stuttgart-Ulm': 45,
+  'Stuttgart-Freiburg': 120,
+  'Stuttgart-Heidelberg': 45,
+  'Stuttgart-Heilbronn': 30,
+  
+  // Hauptverbindungen Hannover
   'Hannover-Leipzig': 165,
   'Hannover-Dresden': 210,
+  'Hannover-Berlin': 105,
+  'Hannover-Hamburg': 90,
+  'Hannover-Frankfurt': 165,
+  'Hannover-Köln': 180,
+  'Hannover-Bremen': 60,
+  'Hannover-Braunschweig': 30,
+  'Hannover-Göttingen': 45,
+  'Hannover-Kassel': 90,
+  'Hannover-Magdeburg': 75,
+  'Hannover-Wolfsburg': 30,
+  
+  // Hauptverbindungen Leipzig
   'Leipzig-Dresden': 75,
+  'Leipzig-Berlin': 75,
+  'Leipzig-Hannover': 165,
+  'Leipzig-Frankfurt': 195,
+  'Leipzig-Nürnberg': 180,
+  'Leipzig-Erfurt': 45,
+  'Leipzig-Halle': 20,
+  'Leipzig-Magdeburg': 90,
+  'Leipzig-Jena': 60,
+  
+  // Hauptverbindungen Dresden
+  'Dresden-Berlin': 120,
+  'Dresden-Leipzig': 75,
+  'Dresden-Hannover': 210,
+  'Dresden-Nürnberg': 240,
+  'Dresden-Erfurt': 150,
+  'Dresden-Halle': 135,
+  
+  // Ruhrgebiet intern
   'Düsseldorf-Essen': 20,
   'Düsseldorf-Dortmund': 45,
+  'Düsseldorf-Köln': 30,
+  'Düsseldorf-Duisburg': 15,
   'Düsseldorf-Stuttgart': 150,
+  'Düsseldorf-Berlin': 270,
+  'Düsseldorf-Hamburg': 225,
+  'Düsseldorf-München': 315,
+  'Essen-Dortmund': 30,
+  'Essen-Köln': 45,
+  'Essen-Duisburg': 10,
+  'Essen-Bochum': 10,
+  'Essen-Gelsenkirchen': 15,
+  'Dortmund-Köln': 60,
+  'Dortmund-Hannover': 120,
+  'Dortmund-Bochum': 15,
+  'Dortmund-Münster': 30,
+  'Dortmund-Bielefeld': 60,
+  'Dortmund-Hagen': 20,
+  'Bochum-Gelsenkirchen': 10,
+  'Bochum-Essen': 10,
+  'Duisburg-Essen': 10,
+  
+  // Weitere wichtige Verbindungen
+  'Nürnberg-Würzburg': 60,
+  'Nürnberg-Regensburg': 60,
+  'Nürnberg-Fürth': 10,
+  'Mannheim-Heidelberg': 15,
+  'Mannheim-Karlsruhe': 30,
+  'Mannheim-Ludwigshafen': 5,
+  'Karlsruhe-Freiburg': 75,
+  'Karlsruhe-Pforzheim': 20,
+  'Bremen-Oldenburg': 45,
+  'Bremen-Bremerhaven': 45,
+  'Kassel-Göttingen': 30,
+  'Kassel-Erfurt': 90,
+  'Erfurt-Jena': 15,
+  'Erfurt-Weimar': 15,
+  'Mainz-Wiesbaden': 15,
+  'Kiel-Lübeck': 60,
+  'Bielefeld-Paderborn': 45,
+  'Bielefeld-Münster': 45,
+  'Münster-Osnabrück': 45,
+  'Wuppertal-Solingen': 15,
+  'Wuppertal-Remscheid': 15,
+  'Halle-Magdeburg': 60,
+  'Chemnitz-Leipzig': 75,
+  'Augsburg-Ulm': 45,
+  'Saarbrücken-Kaiserslautern': 45,
+  'Koblenz-Mainz': 45,
+  'Lübeck-Rostock': 120,
+  'Potsdam-Magdeburg': 75,
+  'Freiburg-Basel': 45,
+  'Aachen-Köln': 45,
+  'Offenbach-Frankfurt': 10,
+  'Neuss-Düsseldorf': 10,
+  'Leverkusen-Köln': 15,
+  'Mönchengladbach-Düsseldorf': 30,
+  'Krefeld-Düsseldorf': 30,
+  'Oberhausen-Essen': 15,
+  'Gelsenkirchen-Herne': 10,
+  'Mülheim-Essen': 10,
+  'Bottrop-Essen': 20,
+  'Recklinghausen-Dortmund': 30,
+  'Hagen-Dortmund': 20,
+  'Hamm-Dortmund': 30,
+  'Solingen-Düsseldorf': 20,
+  'Remscheid-Wuppertal': 15,
+  'Moers-Duisburg': 15,
+  'Salzgitter-Braunschweig': 30,
+  'Wolfsburg-Braunschweig': 20,
 };
 
-// Hilfsfunktion für Reisezeit-Lookup
 function getTravelTime(city1Name, city2Name) {
   if (city1Name === city2Name) return 0;
   
@@ -81,7 +292,6 @@ function getTravelTime(city1Name, city2Name) {
   if (TRAVEL_TIMES[key1]) return TRAVEL_TIMES[key1];
   if (TRAVEL_TIMES[key2]) return TRAVEL_TIMES[key2];
   
-  // Fallback: Berechnung basierend auf Luftlinie (für nicht-definierte Routen)
   const city1 = CITIES.find(c => c.name === city1Name);
   const city2 = CITIES.find(c => c.name === city2Name);
   
@@ -94,7 +304,6 @@ function getTravelTime(city1Name, city2Name) {
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   const distance = R * c;
   
-  // Schätzung: ~0.8 Min/km + 30 Min Basis, auf 15 Min gerundet
   const estimated = Math.round((distance * 0.8 + 30) / 15) * 15;
   return estimated;
 }
@@ -113,7 +322,6 @@ function findOptimalMeetingPoint(selectedCities) {
     const maxTime = Math.max(...travelTimes.map(t => t.time));
     const avgTime = travelTimes.reduce((sum, t) => sum + t.time, 0) / travelTimes.length;
     
-    // Score: Gewichtung von max und avg Zeit (faire Verteilung wichtiger)
     const score = maxTime * 0.7 + avgTime * 0.3;
     
     if (score < bestScore) {
@@ -126,10 +334,44 @@ function findOptimalMeetingPoint(selectedCities) {
   return { city: bestCity, ...bestDetails };
 }
 
+// Komponente zum Zeichnen der Verbindungslinien
+function MapConnections({ selectedCities, optimalPoint }) {
+  const map = useMap();
+  
+  useEffect(() => {
+    if (optimalPoint && selectedCities.length > 0) {
+      const allLats = [...selectedCities.map(c => c.lat), optimalPoint.city.lat];
+      const allLons = [...selectedCities.map(c => c.lon), optimalPoint.city.lon];
+      const bounds = [
+        [Math.min(...allLats) - 0.5, Math.min(...allLons) - 0.5],
+        [Math.max(...allLats) + 0.5, Math.max(...allLons) + 0.5]
+      ];
+      map.fitBounds(bounds);
+    }
+  }, [selectedCities, optimalPoint, map]);
+
+  return (
+    <>
+      {optimalPoint && selectedCities.map((city, idx) => (
+        <Polyline
+          key={`line-${idx}`}
+          positions={[
+            [city.lat, city.lon],
+            [optimalPoint.city.lat, optimalPoint.city.lon]
+          ]}
+          color="#818cf8"
+          weight={2}
+          opacity={0.5}
+          dashArray="5, 10"
+        />
+      ))}
+    </>
+  );
+}
+
 export default function MeetingPointFinder() {
   const [selectedCities, setSelectedCities] = useState([]);
   const [optimalPoint, setOptimalPoint] = useState(null);
-  const [mapDimensions, setMapDimensions] = useState({ width: 800, height: 600 });
 
   useEffect(() => {
     if (selectedCities.length >= 2) {
@@ -155,17 +397,13 @@ export default function MeetingPointFinder() {
     setSelectedCities(prev => prev.filter(c => c.name !== cityName));
   };
 
-  // Konvertierung Geo-Koordinaten zu SVG-Koordinaten
-  const lonToX = (lon) => ((lon - 5.5) / (15.5 - 5.5)) * mapDimensions.width;
-  const latToY = (lat) => mapDimensions.height - ((lat - 47) / (55 - 47)) * mapDimensions.height;
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <div className="flex items-center gap-3 mb-6">
             <Train className="w-8 h-8 text-indigo-600" />
-            <h1 className="text-3xl font-bold text-gray-800">Meeting-Point Finder</h1>
+            <h1 className="text-3xl font-bold text-gray-800">Halfways - Meeting Point Finder</h1>
           </div>
           
           <p className="text-gray-600 mb-8">
@@ -176,65 +414,99 @@ export default function MeetingPointFinder() {
             {/* Karte */}
             <div className="lg:col-span-2">
               <div className="bg-gradient-to-br from-blue-100 to-indigo-50 rounded-xl p-4 border-2 border-indigo-200">
-                <svg width="100%" viewBox={`0 0 ${mapDimensions.width} ${mapDimensions.height}`} className="bg-white rounded-lg">
-                  {/* Verbindungslinien zu optimalem Punkt */}
-                  {optimalPoint && selectedCities.map((city, idx) => (
-                    <line
-                      key={`line-${idx}`}
-                      x1={lonToX(city.lon)}
-                      y1={latToY(city.lat)}
-                      x2={lonToX(optimalPoint.city.lon)}
-                      y2={latToY(optimalPoint.city.lat)}
-                      stroke="#818cf8"
-                      strokeWidth="2"
-                      strokeDasharray="5,5"
-                      opacity="0.4"
+                <div className="h-[600px] rounded-lg overflow-hidden">
+                  <MapContainer
+                    center={[51.1657, 10.4515]}
+                    zoom={6}
+                    style={{ height: '100%', width: '100%' }}
+                    zoomControl={true}
+                  >
+                    <TileLayer
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.stadiamaps.com/">Stadia Maps</a>'
+                      url="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png"
+                      maxZoom={20}
                     />
-                  ))}
-
-                  {/* Alle Städte */}
-                  {CITIES.map((city, idx) => {
-                    const isSelected = selectedCities.find(c => c.name === city.name);
-                    const isOptimal = optimalPoint && optimalPoint.city.name === city.name;
                     
-                    return (
-                      <g key={idx}>
-                        <circle
-                          cx={lonToX(city.lon)}
-                          cy={latToY(city.lat)}
-                          r={isOptimal ? 12 : isSelected ? 8 : 5}
-                          fill={isOptimal ? '#10b981' : isSelected ? '#6366f1' : '#cbd5e1'}
-                          stroke={isOptimal ? '#059669' : isSelected ? '#4f46e5' : '#94a3b8'}
-                          strokeWidth="2"
-                          className="cursor-pointer hover:opacity-80 transition-all"
-                          onClick={() => !isOptimal && toggleCity(city)}
-                        />
-                        {(isSelected || isOptimal) && (
-                          <text
-                            x={lonToX(city.lon)}
-                            y={latToY(city.lat) - 15}
-                            textAnchor="middle"
-                            className="text-xs font-semibold fill-gray-700 pointer-events-none"
-                          >
-                            {city.name}
-                          </text>
-                        )}
-                      </g>
-                    );
-                  })}
-                </svg>
+                    <MapConnections selectedCities={selectedCities} optimalPoint={optimalPoint} />
+                    
+                    {/* Alle Städte */}
+                    {CITIES.map((city, idx) => {
+                      const isSelected = selectedCities.find(c => c.name === city.name);
+                      const isOptimal = optimalPoint && optimalPoint.city.name === city.name;
+                      
+                      // WICHTIG: Der optimale Treffpunkt hat Vorrang vor der Auswahl-Farbe
+                      let markerColor, markerBorderColor, markerSize, markerOpacity;
+                      
+                      if (isOptimal) {
+                        // Grün für optimalen Treffpunkt
+                        markerColor = '#10b981';
+                        markerBorderColor = '#059669';
+                        markerSize = 14;
+                        markerOpacity = 1;
+                      } else if (isSelected) {
+                        // Orange für ausgewählte Städte
+                        markerColor = '#f59e0b';
+                        markerBorderColor = '#d97706';
+                        markerSize = 10;
+                        markerOpacity = 0.9;
+                      } else {
+                        // Grau für verfügbare Städte
+                        markerColor = '#94a3b8';
+                        markerBorderColor = '#64748b';
+                        markerSize = 6;
+                        markerOpacity = 0.6;
+                      }
+                      
+                      // Eindeutiger Key der sich ändert wenn Status wechselt - zwingt React zum Neurendern
+                      const markerKey = `${city.name}-${isOptimal ? 'optimal' : isSelected ? 'selected' : 'available'}`;
+                      
+                      return (
+                        <CircleMarker
+                          key={markerKey}
+                          center={[city.lat, city.lon]}
+                          radius={markerSize}
+                          fillColor={markerColor}
+                          color={markerBorderColor}
+                          weight={isOptimal || isSelected ? 3 : 2}
+                          fillOpacity={markerOpacity}
+                          eventHandlers={{
+                            click: () => !isOptimal && toggleCity(city)
+                          }}
+                        >
+                          <Popup>
+                            <div className="text-center">
+                              <strong className={isOptimal ? 'text-green-600' : ''}>{city.name}</strong>
+                              {isOptimal && <div className="text-green-600 text-sm font-semibold mt-1">✓ Optimaler Treffpunkt</div>}
+                              {isSelected && !isOptimal && (
+                                <button 
+                                  onClick={() => removeCity(city.name)}
+                                  className="text-red-500 text-sm mt-1 hover:underline"
+                                >
+                                  Entfernen
+                                </button>
+                              )}
+                              {!isSelected && !isOptimal && (
+                                <div className="text-gray-500 text-xs mt-1">Klicken zum Auswählen</div>
+                              )}
+                            </div>
+                          </Popup>
+                        </CircleMarker>
+                      );
+                    })}
+                  </MapContainer>
+                </div>
                 
                 <div className="flex gap-4 mt-4 text-sm flex-wrap">
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded-full bg-slate-300 border-2 border-slate-400"></div>
+                    <div className="w-4 h-4 rounded-full bg-slate-400 border-2 border-slate-600" style={{opacity: 0.6}}></div>
                     <span className="text-gray-600">Verfügbare Städte</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded-full bg-indigo-500 border-2 border-indigo-600"></div>
+                    <div className="w-4 h-4 rounded-full bg-amber-500 border-2 border-amber-700"></div>
                     <span className="text-gray-600">Ausgewählte Startstädte</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded-full bg-emerald-500 border-2 border-emerald-600"></div>
+                    <div className="w-4 h-4 rounded-full bg-emerald-500 border-2 border-emerald-700"></div>
                     <span className="text-gray-600">Optimaler Treffpunkt</span>
                   </div>
                 </div>
@@ -250,20 +522,30 @@ export default function MeetingPointFinder() {
                 </h2>
                 
                 {selectedCities.length === 0 ? (
-                  <p className="text-gray-500 text-sm">Klicke auf Städte auf der Karte, um sie auszuwählen.</p>
+                  <p className="text-gray-500 text-sm">Klicke auf Städte auf der Karte oder nutze die Schnellauswahl unten.</p>
                 ) : (
                   <div className="space-y-2">
-                    {selectedCities.map(city => (
-                      <div key={city.name} className="bg-white rounded-lg p-3 flex items-center justify-between">
-                        <span className="font-medium text-gray-800">{city.name}</span>
-                        <button
-                          onClick={() => removeCity(city.name)}
-                          className="text-red-500 hover:bg-red-50 rounded p-1"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
+                    {selectedCities.map(city => {
+                      const isOptimal = optimalPoint && optimalPoint.city.name === city.name;
+                      return (
+                        <div key={city.name} className={`rounded-lg p-3 flex items-center justify-between ${
+                          isOptimal ? 'bg-emerald-100 border-2 border-emerald-300' : 'bg-white'
+                        }`}>
+                          <span className={`font-medium ${isOptimal ? 'text-emerald-700' : 'text-gray-800'}`}>
+                            {city.name}
+                            {isOptimal && <span className="text-xs ml-2">✓ Treffpunkt</span>}
+                          </span>
+                          {!isOptimal && (
+                            <button
+                              onClick={() => removeCity(city.name)}
+                              className="text-red-500 hover:bg-red-50 rounded p-1"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -312,7 +594,7 @@ export default function MeetingPointFinder() {
           <div className="mt-8 pt-6 border-t border-gray-200">
             <h3 className="font-semibold text-gray-700 mb-3">Schnellauswahl Städte:</h3>
             <div className="flex flex-wrap gap-2">
-              {CITIES.slice(0, 15).map(city => {
+              {CITIES.slice(0, 25).map(city => {
                 const isSelected = selectedCities.find(c => c.name === city.name);
                 return (
                   <button
