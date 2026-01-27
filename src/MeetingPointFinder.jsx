@@ -281,6 +281,15 @@ const TRAVEL_TIMES = {
   'Moers-Duisburg': 15,
   'Salzgitter-Braunschweig': 30,
   'Wolfsburg-Braunschweig': 20,
+    // Kassel als wichtiger Knotenpunkt
+  'Kassel-München': 205,
+  'Kassel-Berlin': 180,
+  'Kassel-Hamburg': 150,
+  'Kassel-Dortmund': 150,
+  'Kassel-Frankfurt': 90,
+  'Kassel-Hannover': 90,
+  'Kassel-Göttingen': 30,
+  'Kassel-Erfurt': 90,
 };
 
 function getTravelTime(city1Name, city2Name) {
