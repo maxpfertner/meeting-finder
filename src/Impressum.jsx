@@ -71,7 +71,20 @@ export default function Impressum() {
                 erfolgt anonym. Reisezeiten-Berechnungen werden ausschließlich lokal im Browser durchgeführt und nicht auf 
                 einem Server gespeichert.
               </p>
+              
+              <h3 className="font-semibold text-gray-800 mt-4 mb-2">Vercel Analytics</h3>
+              <p className="text-sm leading-relaxed">
+                Diese Website nutzt Vercel Analytics zur anonymen Erfassung von Besucherstatistiken. Vercel Analytics 
+                sammelt keine personenbezogenen Daten und verwendet keine Cookies. Es werden lediglich aggregierte, 
+                anonymisierte Zugriffsdaten (z.B. Seitenaufrufe, ungefähre geografische Herkunft) erfasst, um die 
+                Nutzung der Website zu verstehen und zu verbessern.
+              </p>
               <p className="text-sm leading-relaxed mt-2">
+                Weitere Informationen finden Sie in der <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">Datenschutzerklärung von Vercel</a>.
+              </p>
+
+              <h3 className="font-semibold text-gray-800 mt-4 mb-2">Kartendarstellung</h3>
+              <p className="text-sm leading-relaxed">
                 Die Kartendarstellung erfolgt über OpenStreetMap bzw. CARTO. Bitte beachten Sie die Datenschutzhinweise 
                 der jeweiligen Anbieter:
               </p>
